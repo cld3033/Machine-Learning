@@ -1,1 +1,26 @@
+library(caret)
+predicted <- as.factor(c(1,0,0,1,1,1,0,0,0,1,1,1))
+actual <- as.factor(c(1,0,0,1,1,0,1,1,0,1,1,1))
+
+confusionMatrix(predicted, actual)
+
+urlRemote <- "https://raw.githubusercontent.com/"
+pathGithub <- "cld3033/Machine-Learning/main/Classification%201/"
+filename <- "ClassPer.csv"
+class <- read.csv(paste0(urlRemote, pathGithub, filename))
+class
+
+str(class)
+# Notice that the field Breakfast is classified as an int data type, 
+# but it is indicating yes or no does the student eat breakfast. This should
+# be changed to a categorical data type using the facor function.
+
+class$Breakfast <- factor(class$Breakfast)
+
+str(class)
+
+# Now the logistic regression can be ran 
+
+mylogit <- glm(Performance~Breakfast+Sleep+Laser.time, data=class, family = "binomial" )
+summary(mylogit)
 
