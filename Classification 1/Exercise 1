@@ -1,8 +1,12 @@
+# Below shows how to create a confusion matrix with 2 vectors
+
 library(caret)
 predicted <- as.factor(c(1,0,0,1,1,1,0,0,0,1,1,1))
 actual <- as.factor(c(1,0,0,1,1,0,1,1,0,1,1,1))
 
 confusionMatrix(predicted, actual)
+
+# Below is our first logit model exercise
 
 urlRemote <- "https://raw.githubusercontent.com/"
 pathGithub <- "cld3033/Machine-Learning/main/Classification%201/"
@@ -10,7 +14,9 @@ filename <- "ClassPer.csv"
 class <- read.csv(paste0(urlRemote, pathGithub, filename))
 class
 
+# Check structure and data types of the class data
 str(class)
+
 # Notice that the field Breakfast is classified as an int data type, 
 # but it is indicating yes or no does the student eat breakfast. This should
 # be changed to a categorical data type using the facor function.
