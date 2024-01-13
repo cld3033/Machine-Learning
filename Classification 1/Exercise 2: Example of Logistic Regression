@@ -1,1 +1,42 @@
+urlRemote <- "https://raw.githubusercontent.com/"
+pathGithub <- "cld3033/Machine-Learning/main/Classification%201/"
+filename <- "WA_Fn-UseC_-HR-Employee-Attrition.csv"
+att <- read.csv(paste0(urlRemote, pathGithub, filename))
+head(att)
 
+# Check structure and data types
+str(att)
+# Convert Attrition to a factor 
+att$Attrition <- factor(att$Attrition)
+
+# Partitioin the data
+set.seed(123) # this allows for the same randomly generated dataset to be replicated
+# Random sample w/ 70% for training 
+library(caret)
+partition <- createDataPartition(y=att$Attrition, p=0.7, list = FALSE)
+# above y indicates the varaiable that you want classify
+# p indicates the percentage of data you want to use for training 
+# list indicates how the result will be returned, True = list, false = matrix
+
+train <- att[partition,]
+test <- att[-partition,]
+str(train)
+
+# Two logistic models
+# The variabel left of the ~ is the variable you want to predict for
+# The variables to the left of the ~ are the regressors or predictor variables 
+m1 <- glm(Attrition ~ MonthlyIncome, family = "binomial", data = att)
+m2 <- glm(Attrition ~ OverTime, family = "binomial", data = att)
+m1
+# m1 suggests that increase in monthly income is associated with decrease in attrition
+m2
+# m2 suggests that increase in over time is associated with increase in attrition
+
+
+# Exponential funciton of the coefficients shows odds
+exp(coef(m1))
+# m1 shows the odds of an employess attrition increased by almost by almost 1 for 
+# every increase in dollar earned 
+exp(coef(m2))
+# m2 shows the odds of attrition increases by almost 3.77 for employees 
+# who work overtime compared to those who do not 
