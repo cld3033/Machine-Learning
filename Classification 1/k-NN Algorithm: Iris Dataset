@@ -1,0 +1,33 @@
+# import data 
+library(class)
+data <- iris[, c("Sepal.Length", "Sepal.Width", "Species")]
+
+set.seed(123)
+# set index
+# this takes a sample with replacement with a size of the number of rows
+# and assigns either train or test with a set probability 
+# replace means that we assign either train or test to certain row and 
+# that we set the vector of training and test to its original state. 
+# So if observation 1 is labeled as test the next observation can still 
+# be test because the value test is replaced in the vector.
+idx <- sample(c("train", "test"), nrow(data),
+              replace = TRUE, prob = (c(0.67, 0.33)))
+
+trainset <- data[idx=="train", 1:2]
+testset <- data[idx=="test", 1:2]
+
+# compose iris training labels 
+data.trainLabels <- data[idx=="train", 3]
+# compose iris test labels
+data.testLabels <- data[idx=="test", 3]
+
+# build model 
+pred <- knn(train = trainset, test = testset, cl = data.trainLabels, k=3)
+pred
+summary(pred)
+
+# evaluate the model 
+library(gmodels)
+CrossTable(x=data.testLabels, y=pred)
+library(caret)
+confusionMatrix(data.testLabels, pred)
