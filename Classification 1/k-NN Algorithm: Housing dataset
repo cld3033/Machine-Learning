@@ -1,0 +1,48 @@
+urlRemote <- "https://raw.githubusercontent.com/"
+pathGithub <- "cld3033/Machine-Learning/main/Classification%201/"
+filename <- "Roxbury.csv"
+housing.df <- read.csv(paste0(urlRemote, pathGithub, filename))
+
+library(caret)
+
+# split the data into training and test groups with simple random sample
+# the first value in the sample funciton is the range of values you want to select 
+# a sample from
+# the second value is the number of values you want returned for your sample
+train.index <- sample(row.names(housing.df), 0.6 *dim(housing.df)[1])
+# setdiff returns values that are in the first object, but not the second.
+test.index <- setdiff(row.names(housing.df), train.index)
+
+train.df <- housing.df[train.index,]
+test.df <- housing.df[test.index,]
+
+# create new data frame 
+train.norm.df <- train.df
+test.norm.df <- test.df
+
+# normalize data first 
+# The variable transformation using the caret package normalizes the data in 
+# two stages. The preprocess function sets the parameters required for conversion
+# and the value is actually changed through the predict function.
+norm.values <- preProcess(train.df[,1:3], method = c("center", "scale"))
+train.norm.df[,1:3] <- predict(norm.values, train.df[,1:3])
+test.norm.df[,1:3] <- predict(norm.values, test.df[1:3])
+
+library(class)
+# a simple classification. set k equals to 3
+knn(train = train.norm.df[,1:3], test = test.norm.df[,1:3],
+    cl = train.norm.df[,4], k = 3)
+
+# initialize a data frame w/ two columns: k, and accuracy
+# below seq is gerating a sequence of numbers 1 to 15 counting by ones
+# rep is repeating the value 0 fifteen times.
+accuracy.df <- data.frame(k = seq(1, 15, 1), accuracy = rep(0, 15))
+
+library(e1071)
+# compute knn for different k on validation.Then insert the accuracy for each
+# iteration into accuracy.df 
+for (i in 1:15) {
+  knn.pred <- knn(train.norm.df[,1:3], test.norm.df[,1:3],
+                  cl = train.norm.df[,4], k = i)
+  accuracy.df[i, 2] <- confusionMatrix(knn.pred, factor(test.norm.df[, 4]))$overall[1]
+}
