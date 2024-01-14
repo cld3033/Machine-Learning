@@ -1,0 +1,84 @@
+urlRemote <- "https://raw.githubusercontent.com/"
+pathGithub <- "cld3033/Machine-Learning/main/Classification%201/"
+filename <- "spotify.csv"
+spot <- read.csv(paste0(urlRemote, pathGithub, filename))
+
+# see the structure of the dataset
+str(spot)
+head(spot)
+
+# explore the distribution of the target variable
+table(spot$like)
+
+# convert the target variable(integer) to factor, because it is categorical 
+spot$like <- factor(spot$like, level = c("1", "0"), labels = c("1", "0"))
+
+# normalize the data except for the target variable with minimax normalization method
+normalize <- function(x){return((x-min(x))/(max(x)-min(x)))}
+
+spot_n <- as.data.frame(lapply(spot[1:13], normalize))
+str(spot_n)
+
+# bind the target variable to spot_n
+spot_n <- cbind(spot_n, spot[14])
+str(spot_n)
+head(spot_n)
+
+# partition the data
+library(caret)
+set.seed(123)
+# partition the data with the 7:3 ratio: p=0.7 means that 70% of the data is 
+# for the training and the rest is for testing 
+partition <- createDataPartition(spot_n$like, p=0.7,list=FALSE)
+train.df <- spot_n[partition, ]
+test.df <- spot_n[-partition, ]
+head(train.df)
+head(test.df)
+str(train.df)
+str(test.df)
+
+trainLabels <- spot_n[partition, 14]
+testLabels <- spot_n[-partition, 14]
+
+library(class)
+train.df.1 <- train.df[,-14]
+test.df.1 <- test.df[,-14]
+
+# run KNN model 
+spot_test_pred <- knn(train.df.1, test.df.1, cl = trainLabels, k=21)
+summary(spot_test_pred)
+
+# evaluate the performance with a confusion matrix
+library(caret)
+confusionMatrix(testLabels, spot_test_pred)
+
+# run logistic regression
+library(gmodels)
+# the . is short for all other variables 
+glmModel <- glm(like ~ ., family = "binomial", data = train.df)
+print(summary(glmModel))
+
+# evaluate the logistic performance
+fitted.results <- predict(glmModel, test.df, type = "response")
+fitted.results <- ifelse(fitted.results> 0.5, "1", "0")
+
+CrossTable(x=test.df$like, y=fitted.results, prop.chisq = FALSE, prop.c = FALSE,
+           prop.r = FALSE, dnn = c('actual default', 'predicted default'))
+confusionMatrix(as.factor(test.df$like), as.factor(fitted.results))
+
+# why did the logistic model have a much lower accuracy?
+# this could be because some of the variables are insignificant, leading to a
+# poor model, or perhaps some variables are highly correlated with each other.
+
+# to improve this analysis, you can select the explanatory variables and then 
+# perform the analysis again.This can be done by looking at the correlations with 
+# the explanatory and target variables
+# another method is feature selection, which will be introduced in module 4
+
+# future prediction with existing model
+test_data1 <- test.df
+new = test_data1[1:5, -14]
+new
+predict(glmModel, newdata = new, type = "response")
+results <- ifelse(predict(glmModel, newdata = new, type = "response")> 0.5, "1", "0")
+results
