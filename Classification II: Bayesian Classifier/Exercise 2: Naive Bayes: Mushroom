@@ -1,0 +1,33 @@
+urlRemote <- "https://raw.githubusercontent.com/"
+pathGithub <- "cld3033/Machine-Learning/main/Classification%20II%3A%20Bayesian%20Classifier/"
+filename <- "mushrooms.csv"
+mushroom <- read.csv(paste0(urlRemote, pathGithub, filename))
+
+# Observe data structure
+str(mushroom)
+
+# Convert all the variables to factors
+mushroom[, colnames(mushroom)] <- lapply(mushroom[, colnames(mushroom)] , factor)
+str(mushroom)
+
+# Partition Data 
+
+library(caret)
+set.seed(123)
+# partition the data w/ a 7:3 ratio 
+partition <- createDataPartition(mushroom$class, p=0.7, list = FALSE)
+train.df <- mushroom[partition, ]
+test.df <- mushroom[-partition, ]
+str(train.df)
+str(test.df)
+
+trainLabels <- mushroom[partition, 1]
+testLabels <- mushroom[-partition, 1]
+
+library(e1071)
+mushroom_bayes <- naiveBayes(train.df, trainLabels, laplace = 1)
+mushroom_bayes
+
+m_pred <- predict(mushroom_bayes, test.df)
+
+confusionMatrix(m_pred, testLabels)
