@@ -1,0 +1,64 @@
+urlRemote <- "https://raw.githubusercontent.com/"
+pathGithub <- "cld3033/Machine-Learning/main/Classification%20II%3A%20Bayesian%20Classifier/"
+filename <- "heart.csv"
+heart <- read.csv(paste0(urlRemote, pathGithub, filename))
+
+# Obseverve data structure
+str(heart)
+
+# Convert categorical values to factors
+heart$ChestPain <- factor(heart$ChestPain)
+heart$Thal <- factor(heart$Thal)
+heart$AHD <- factor(heart$AHD)
+
+# Partition the data
+# The target variable is AHD, which indicates whether the individual has heart
+# disease or not 
+library(caret)
+set.seed(1234)
+intrain <- createDataPartition(y=heart$AHD, p=0.7, list = FALSE)
+trainset <- heart[intrain, ]
+testset <- heart[-intrain, ]
+summary(trainset)
+summary(testset)
+
+# Load in the e1071 package to use the naive bayes classifier
+library(e1071)
+nb.model <- naiveBayes(AHD~ ., data = trainset)
+nb.model
+
+# Prediction function 
+nb.model.pred <- predict(nb.model, testset, type = 'class')
+nb.model.pred
+
+# Evaluate the model with the confusion matrix
+actual <- testset$AHD
+confusionMatrix(actual, nb.model.pred)
+
+# We can then use this information from the nb.model to evaluate specific conditional 
+# probabilities. An example would be P(AHD = YES | ChestPain = typical, Thal = Fixed)
+# This is calculated by finding the conditional probabiltiy for when ChestPain is 
+# typical and AHD = YES * the probability of Thal = Fixed and AHD = YES * probability
+# of AHD = YES. This product will be the numerator. You would then find the product of 
+# probabiltiy for when ChestPain is typical and AHD = NO * the probability of Thal = Fixed 
+# and AHD = NO * probability of AHD = No. You will add the same value you obtained for the
+# numerator to this product and the sum will be the denominator. 
+
+# P(AHD = YES | ChestPain = typical, Thal = Fixed)
+
+# P(AHD = YES | ChestPain = Typical) = 0.0306
+# P(AHD = YES | Thal = Fixed) = 0.0824
+# P(AHD = YES) = 0.46
+
+# Numerator = 0.0306 * 0.0824 * 0.46 = 0.001159862
+
+# P(AHD = NO | ChestPain = Typical) = 0.0956
+# P(AHD = NO | Thal = Fixed) = 0.0263
+# P(AHD = NO) = 0.54
+
+# Denominator part A = 0.0956 * 0.0263 * 0.54 = 0.001357711
+# sum the probabilities for the denominator = 0.001159862 + 0.001357711 = 0.002517573
+
+# divide the numerator and denominator
+# 0.001159862/0.002517573 =  0.4607064 or about 46%
+
