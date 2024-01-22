@@ -1,0 +1,85 @@
+urlRemote <- "https://raw.githubusercontent.com/"
+pathGithub <- "cld3033/Machine-Learning/main/Classification%20II%3A%20Bayesian%20Classifier/"
+filename <- "delay2.csv"
+flight <- read.csv(paste0(urlRemote, pathGithub, filename))
+
+# observe the structure of the data
+str(flight)
+
+# Convert all the variables to factors 
+flight[, colnames(flight)] <- lapply(flight[, colnames(flight)], factor)
+str(flight)
+
+# Partition the data with a 7:3 ratio
+library(caret)
+set.seed(123)
+partition <- createDataPartition(flight$Status, p=0.7, list = FALSE)
+train.df <- flight[partition, ]
+test.df <- flight[-partition, ]
+str(train.df)
+str(test.df)
+
+
+library(e1071)
+flight_bayes <- naiveBayes(Status ~ ., data = train.df)
+flight_bayes
+
+f_pred <- predict(flight_bayes, test.df, type = 'class')
+
+actual <- test.df$Status
+confusionMatrix(actual, f_pred)
+
+# Calculate the conditional probability of P(Delay = 1 | Carrier = DL, Day of Week = 1, Destination = JFK, Origin = DCA)
+
+# P(Delay = 1 | Carrier = DL) = 0.067796610 
+# P(Delay = 1 | Day of Week = 1) = 0.18644068
+# P(Delay = 1 | Destination = JFK) = 0.1864407
+# P(Delay = 1 | Origin = DCA) = 0.55932203
+# P(Delay = 1) = 0.1960133 
+
+# numerator = 0.067796610 * 0.18644068 * 0.1864407 * 0.55932203 * 0.1960133 = 0.0002583669
+
+# Calculate the conditional probability of P(Delay = 0 | Carrier = DL, Day of Week = 1, Destination = JFK, Origin = DCA)
+
+# P(Delay = 0 | Carrier = DL) = 0.107438017 
+# P(Delay = 0 | Day of Week = 1) = 0.18595041
+# P(Delay = 0 | Destination = JFK) = 0.1900826
+# P(Delay = 0 | Origin = DCA) = 0.51239669
+# P(Delay = 0 ) = 0.8039867
+
+# product = 0.107438017 * 0.18595041 * 0.1900826 * 0.51239669 * 0.8039867 = 0.001564418
+
+# Denominator  = 0.001564418 + 0.0002583669 = 0.00182278
+
+# P(Delay = 1 | Carrier = DL, Day of Week = 1, Destination = JFK, Origin = DCA) = 0.0002583669/0.00182278 = 0.1417433
+
+
+# Predict result from new flight data
+# Create a data frame containing the flight data
+newFlight <- data.frame(Day.of.Week = 2,
+                        Carrier = 'DH',
+                        Origin = 'IAD',
+                        Destination = 'LGA',
+                        Status = NA)
+# Convert the data to types that match those of the original data set
+newFlight$Day.of.Week <- as.integer(newFlight$Day.of.Week)
+newFlight$Status <- as.integer(newFlight$Status)
+str(newFlight)
+
+# reload the original data
+flight <- read.csv(paste0(urlRemote, pathGithub, filename))
+str(flight)
+
+# append the new flight information to the data set 
+nFlight <- rbind(flight, newFlight)
+
+# Convert all the variables to factors 
+nFlight[, colnames(nFlight)] <- lapply(nFlight[, colnames(nFlight)], factor)
+str(nFlight)
+
+# Predict the status of the new flight 
+n_pred <- predict(flight_bayes, nFlight[429, ], type = 'raw')
+n_pred  
+n_pred <- predict(flight_bayes, nFlight[429, ], type = 'class')
+n_pred  
+
