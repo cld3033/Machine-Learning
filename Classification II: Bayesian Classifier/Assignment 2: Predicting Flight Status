@@ -37,7 +37,8 @@ confusionMatrix(actual, f_pred)
 # P(Delay = 1 | Origin = DCA) = 0.55932203
 # P(Delay = 1) = 0.1960133 
 
-# numerator = 0.067796610 * 0.18644068 * 0.1864407 * 0.55932203 * 0.1960133 = 0.0002583669
+numerator <- 0.067796610 * 0.18644068 * 0.1864407 * 0.55932203 * 0.1960133 
+numerator
 
 # Calculate the conditional probability of P(Delay = 0 | Carrier = DL, Day of Week = 1, Destination = JFK, Origin = DCA)
 
@@ -47,11 +48,11 @@ confusionMatrix(actual, f_pred)
 # P(Delay = 0 | Origin = DCA) = 0.51239669
 # P(Delay = 0 ) = 0.8039867
 
-# product = 0.107438017 * 0.18595041 * 0.1900826 * 0.51239669 * 0.8039867 = 0.001564418
+denom1 <- 0.107438017 * 0.18595041 * 0.1900826 * 0.51239669 * 0.8039867
+denom1
 
-# Denominator  = 0.001564418 + 0.0002583669 = 0.00182278
-
-# P(Delay = 1 | Carrier = DL, Day of Week = 1, Destination = JFK, Origin = DCA) = 0.0002583669/0.00182278 = 0.1417433
+# Calculate the conditional probability
+numerator/(numerator + denom1)
 
 
 # Predict result from new flight data
@@ -83,3 +84,26 @@ n_pred
 n_pred <- predict(flight_bayes, nFlight[429, ], type = 'class')
 n_pred  
 
+# Calculate the conditional probability of P(Delay = 1 | Carrier = DH, Day of Week = 2, Destination = LGA, Origin = IAD)
+
+# P(Delay = 1 | Carrier = DH) = 0.305084746
+# P(Delay = 1 | Day of Week = 2) = 0.28813559
+# P(Delay = 1 | Destination = LGA) = 0.4915254
+# P(Delay = 1 | Origin = IAD) = 0.38983051
+# P(Delay = 1) = 0.1960133 
+
+numerator <-  0.305084746 * 0.28813559 * 0.4915254 * 0.38983051 * 0.1960133 
+numerator
+# Calculate the conditional probability of P(Delay = 0 | Carrier = DL, Day of Week = 1, Destination = JFK, Origin = DCA)
+
+# P(Delay = 0 | Carrier = DH) = 0.338842975
+# P(Delay = 0 | Day of Week = 2) = 0.13223140
+# P(Delay = 0 | Destination = LGA) = 0.4090909
+# P(Delay = 0 | Origin = IAD) = 0.41735537
+# P(Delay = 0 ) = 0.8039867
+
+denom1 <-  0.338842975 * 0.13223140 * 0.4090909 * 0.41735537 * 0.8039867 
+denom1
+
+# Calculate the probability of the flight being delayed 
+numerator/(numerator + denom1)
