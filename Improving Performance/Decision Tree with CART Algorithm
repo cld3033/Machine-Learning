@@ -1,0 +1,93 @@
+urlRemote <- "https://raw.githubusercontent.com/"
+pathGithub <- "cld3033/Machine-Learning/main/Classification%201/"
+# filename <- "heart.csv"
+filename <- "WA_Fn-UseC_-HR-Employee-Attrition.csv"
+attrition <- read.csv(paste0(urlRemote, pathGithub, filename))
+
+# Observe data structure
+str(attrition)
+attrition$Attrition <- factor(attrition$Attrition)
+attrition$BusinessTravel <- factor(attrition$BusinessTravel)
+attrition$Department <- factor(attrition$Department)
+attrition$EducationField <- factor(attrition$EducationField)
+attrition$Gender <- factor(attrition$Gender)
+attrition$JobRole <- factor(attrition$JobRole)
+attrition$Over18 <- factor(attrition$Over18)
+attrition$OverTime <- factor(attrition$OverTime)
+attrition$OverTime <- factor(attrition$OverTime)
+
+str(attrition)
+
+# partition the data
+library(caret)
+set.seed(123)
+partition <- createDataPartition(attrition$Attrition, p=0.7, list = FALSE)
+train.df <- attrition[partition, ]
+test.df<- attrition[-partition, ]
+trainLabels <- attrition[partition, 2]
+testLabels <- attrition[-partition, 2]
+
+# create model 
+library(rpart)
+library(rpart.plot)
+cartmModel <- rpart(Attrition ~ ., data = train.df, method = "class")
+
+# plot model
+plot(cartmModel)
+rpart.plot(cartmModel)
+text(cartmModel)
+cartmModel # a * beside a feature indicates that it is a terminal node
+summary(cartmModel) # look for CP with the lowest xerror. CP decreases as split increases
+
+# Prune the model
+pruning <- prune(cartmModel, cp=0.012, "CP") 
+rpart.plot(pruning, cex=0.7)
+
+####################### Future prediction with the existing model ##############################
+new <- test.df[1:5, -2]
+new
+predict(pruning, newdata = new, type = "class")
+
+############################## New example with heart data set ##################################
+urlRemote <- "https://raw.githubusercontent.com/"
+pathGithub <- "cld3033/Machine-Learning/main/Classification%20II%3A%20Bayesian%20Classifier/"
+filename <- "heart.csv"
+heart <- read.csv(paste0(urlRemote, pathGithub, filename))
+
+str(heart)
+# convert categorical data to factors
+heart$ChestPain <- factor(heart$ChestPain)
+heart$Thal <- factor(heart$Thal)
+heart$AHD <- factor(heart$AHD)
+
+# partition the data with a 7:3 ratio 
+library(caret)
+set.seed(123)
+partition2 <- createDataPartition(heart$AHD, p=0.7, list = FALSE)
+trainH.df <- heart[partition2, ]
+testH.df <- heart[-partition2, ]
+
+head(trainH.df)
+trainHLabel <- heart[partition2, 15]
+testHlabel <- heart[-partition2, 15]
+
+# Build the model 
+
+# if the target variable is a factor then the method = "class" is assumed.
+cartModelH <- rpart(AHD ~ ., data = trainH.df, method = "class")
+plot(cartModelH)
+text(cartModelH)
+cartModelH
+rpart.plot(cartModelH)
+summary(cartModelH)
+
+# prune the model 
+printcp(cartModelH)
+plotcp(cartModelH)
+
+pruning2 <- prune(cartModelH, cp= 0.01, "CP")
+rpart.plot(pruning2, cex = 0.7)
+
+# predict 
+cartpred2 <- predict(cartModelH, testH.df, type = "class")
+confusionMatrix(cartpred2, testHlabel)
