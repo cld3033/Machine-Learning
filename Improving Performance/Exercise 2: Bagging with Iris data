@@ -1,0 +1,43 @@
+library(adabag)
+library(rpart)
+library(rpart.plot)
+library(caret)
+
+set.seed(123)
+
+idx <- sample(1:150, 100)
+train <- iris[idx, ]
+test <- iris[-idx, ]
+
+# single tree
+iris.single <- rpart(Species ~ ., data = train, method = 'class')
+
+iris.bagging <- bagging(Species ~ ., data = train, mfinal=5, 
+                        control = rpart.control(maxdepth = 5, minsplit = 5)) 
+# mfinal defines the number of trees we want to generate
+
+# this outputs all of the tree models generated
+iris.bagging$trees
+
+# the result of the learning data can be found with class
+iris.bagging$class
+
+# this visualizes the first tree
+rpart.plot(iris.bagging$trees[[1]])
+
+iris.bagging$importance
+
+#plot importance 
+barplot(iris.bagging$importance[order(iris.bagging$importance, decreasing = TRUE)]
+        , ylim = c(0,100), main = "Variables Relative Importance", col = "blue")
+
+library(e1071)
+# evaluate performance of single model
+pred <- predict(iris.single, test, type = "class")
+confusionMatrix(pred, test$Species)
+
+# evaluate the perfomance of bagging 
+pred2 <- predict(iris.bagging, test, type= "class")
+# because pred2$class is stored as character and not a factor like test$species, we
+# we must convert to a factor within the confusion matrix function
+confusionMatrix(factor(pred2$class), test$Species)
