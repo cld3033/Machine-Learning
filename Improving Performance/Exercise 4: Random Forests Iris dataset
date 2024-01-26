@@ -1,0 +1,50 @@
+library(randomForest)
+set.seed(123)
+train <- sample(1:150, 100)
+
+# node size = the minimum number of terminal nodes
+# the larger the number the smaller the tree
+# mtry sets the numbeer of vraible applied
+#ntree is numbers of the tree
+myForest <-  randomForest(Species ~ ., nodesize = 3, mtry = 2, ntree = 15, data = iris)
+
+myForest
+
+# polt the number of trees with error 
+plot(myForest)
+
+# show predicted values for the train data
+myForest$predicted
+
+# obbserve confusion matrix of the train data
+myForest$confusion
+
+# prdeict with test data 
+predict(myForest, newdata = iris[-train, ])
+
+# confusion matrix
+tt <- table(iris$Species[-train], predict(myForest, newdata = iris[-train, ]))
+tt
+
+# classification rate 
+sum(tt[row(tt) == col(tt)])/sum(tt)
+
+# msiclassification rate 
+1 - sum(tt[row(tt) == col(tt)])/sum(tt)
+
+# Plot the confusion matrix
+library(ggplot2)
+test <- iris[-train, ]
+test$pred <- predict(myForest, newdata = iris[-train, ])
+
+ggplot(test, aes(Species, pred, color = Species)) + 
+  geom_jitter(width = 0.2, height = 0.1, size = 2) + 
+  labs(title = "Confusion Matrix",
+       subtitle = "Predicted vs. Observed from Iris Dataset",
+       y = "Predicted", x = "Truth")
+
+
+
+
+
+
