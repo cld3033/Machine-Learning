@@ -1,0 +1,51 @@
+urlRemote <- "https://raw.githubusercontent.com/"
+pathGithub <- "cld3033/Machine-Learning/main/Improving%20Performance/"
+filename <- "credit(1).csv"
+credit <- read.csv(paste0(urlRemote, pathGithub, filename))
+
+# load packages 
+library(ipred)
+
+# inspect data types
+str(credit)
+
+# convert character datatypes to factors 
+
+charCols <- credit[sapply(credit, is.character)]
+
+credit[, colnames(charCols)] <- lapply(credit[, colnames(charCols)], factor)
+str(credit)
+
+# Bagging 
+set.seed(123)
+mybag <- bagging(default ~ ., data = credit, nbagg = 25)
+
+bag_pred <- predict(mybag, credit)
+table(bag_pred, credit$default)
+
+# Boosting 
+library(adabag)
+set.seed(300)
+myBoost <- boosting(default ~ ., data = credit)
+boost_pred <- predict(myBoost, credit)
+boost_pred$confusion
+
+# too look at the actual predictions
+boost_pred$class
+# boosting allows error rate to be reduced compared to bagging, 
+# but may result in overfitting the training data.
+
+# Random forest - combines the principle of bagging with random feature seleciton 
+# to add additional diversity to the decison tree models 
+# Random forsets handle extremely large data set that might cause other moseld to fail
+# Advanatages: performing well on most problems, handling noise features, selecting
+# only the most important features, and applying to an extremely large number of features
+
+# Random forest 
+library(randomForest)
+set.seed(400)
+myForest <- randomForest(default ~., data = credit)
+# by default the random forest function created an ensemble of 500 trees that consider
+# aquare root of the number of features in the data
+
+myForest
