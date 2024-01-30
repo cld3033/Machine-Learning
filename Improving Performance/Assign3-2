@@ -4,6 +4,7 @@ author: "Caroline Dennington"
 date: "2024-01-30"
 output: word_document
 ---
+
 |           The universal bank dataset contains 5000 observation and 9 variables on account holders. The variables "Education", "Personal.Loan", "Securities.Account", and "CreditCard" are all converted from integers to factors, as they are categorical in nature. Since this data will be used to create models to aid in target marketing for individuals that are likely to take out a personal loan, the variable "Personal.Loan" is used as the target variable when partitioning the data. The data is split into train and test groups, with 70% of the data allocated to training and the remaining portion allocated to testing.
 ```{r}
 # Load the data 
@@ -47,10 +48,33 @@ cartPred <- predict(cartModel, newdata = test[-7], type = "class")
 confusionMatrix(cartPred, testLabels)
 cartModel$control
 ```
+|           A bagging model is created to predict "Personal.Loan" using the training data with 100 bootstrap replications. The accuracy of the bagging model is 98%, with 13 cases incorrectly classified as having a personal loan and 17 cases incorrectly classified as not having a personal loan. In this scenario, the oppotuinty cost of missing personal loan applicants is greater than the cost of marketing to individuals who are unlikely to take out a personal loan. While there was no improvement in the overall accuracy, decreasing the amount of false negaitves by 2 is a slight improvement upon the initial decision tree model. 
 
+|           Bagging is also considered favorable over a single decision tree model, as it reduces variance and is and the likelihood of overfitting the data. 
 ```{r}
+# Create a bagging model 
 library(ipred)
 set.seed(123)
-mybag <- bagging(Personal.Loan ~ ., data = train, nbagg = 100)
+myBag <- bagging(Personal.Loan ~ ., data = train, nbagg = 100)
 
+# evaluate the bagging model 
+bagPred <- predict(myBag, test[-7])
+confusionMatrix(bagPred, testLabels)
+table(bagPred, testLabels)
+
+myBag2 <- bagging(Personal.Loan ~ ., data = bank, nbagg = 100)
+
+# evaluate the bagging model 
+bagPred2 <- predict(myBag2, bank)
+confusionMatrix(bagPred2, bank$Personal.Loan)
+table(bagPred2, bank$Personal.Loan)
+```
+
+|           
+```{r}
+#################################### Come back and finish this section ########################################
+# Create a boosting model 
+library(adabag)
+set.seed(123)
+myBoost <- boosting(Personal.Loan ~ ., data = train)
 ```
