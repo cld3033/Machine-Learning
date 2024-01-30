@@ -1,0 +1,56 @@
+---
+title: "Assign3-2_Dennington"
+author: "Caroline Dennington"
+date: "2024-01-30"
+output: word_document
+---
+|           The universal bank dataset contains 5000 observation and 9 variables on account holders. The variables "Education", "Personal.Loan", "Securities.Account", and "CreditCard" are all converted from integers to factors, as they are categorical in nature. Since this data will be used to create models to aid in target marketing for individuals that are likely to take out a personal loan, the variable "Personal.Loan" is used as the target variable when partitioning the data. The data is split into train and test groups, with 70% of the data allocated to training and the remaining portion allocated to testing.
+```{r}
+# Load the data 
+urlRemote <- "https://raw.githubusercontent.com/"
+pathGithub <- "cld3033/Machine-Learning/main/Improving%20Performance/"
+filename <- "UniversalBank_Ensemble(1).csv"
+bank <- read.csv(paste0(urlRemote, pathGithub, filename), stringsAsFactors = TRUE)
+
+# Convert categorical variables to factors
+bank$Personal.Loan <- factor(bank$Personal.Loan)
+bank$Securities.Account <- factor(bank$Securities.Account)
+bank$CreditCard <- factor(bank$CreditCard)
+bank$Education <- factor(bank$Education)
+
+str(bank)
+
+# Partition the data 
+library(caret)
+set.seed(123)
+partition <- createDataPartition(bank$Personal.Loan, p=0.7, list = FALSE)
+train <- bank[partition, ]
+test <- bank[-partition, ]
+trainLabels <- bank[partition, 7]
+testLabels <- bank[-partition, 7]
+```
+
+|           A decision tree is created with the CART algorithm with the rpart function and teh train data as input. The resulting model has 8 terminal nodes and has depth of 5, if you count the root node as depth 0. The accuracy of the decision tree is 98% with 11 cases not having a personal loan incorrectly classified as having a personal loan and 19 cases having personal loan incorrectly classified as not having a personal loan. This model was made with a cp value of 0.01, so the model may be over fitted. 
+```{r}
+# Create a decision tree 
+library(rpart)
+library(rpart.plot)
+cartModel <- rpart(Personal.Loan ~ ., data = train, method = "class")
+rpart.plot(cartModel)
+
+summary(cartModel)
+
+# predict the class of the test data 
+cartPred <- predict(cartModel, newdata = test[-7], type = "class")
+
+# evaluate the model 
+confusionMatrix(cartPred, testLabels)
+cartModel$control
+```
+
+```{r}
+library(ipred)
+set.seed(123)
+mybag <- bagging(Personal.Loan ~ ., data = train, nbagg = 100)
+
+```
