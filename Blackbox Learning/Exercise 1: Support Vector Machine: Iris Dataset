@@ -1,0 +1,24 @@
+library(e1071)
+data("iris")
+
+# create the support vecotr machine
+# type determines how to perform the svm function
+# radial means Gaussian RBF
+# the gamma value parameter si required for all kernel, except linear relationships
+mySVMs <- svm(formula = Species ~ ., data = iris, type = "C-classification",
+              kernel = "radial", cost = 10, gamma=0.1)
+
+# view summary
+summary(mySVMs)
+
+# plot the svm
+plot(mySVMs, iris, Petal.Width~Petal.Length, 
+     slice = list(Sepal.Width=3, Sepal.Length=4))
+
+# Show how many observations were misclassified with the svm using the predict function
+pred <- predict(mySVMs, iris)
+table(pred, iris$Species)
+
+# can also look at its confusion matrix with the caret package 
+library(caret)
+confusionMatrix(pred, iris$Species)
