@@ -1,0 +1,57 @@
+urlRemote <- "https://raw.githubusercontent.com/"
+pathGithub <- "cld3033/Machine-Learning/main/Blackbox%20Learning/"
+filename <- "letterdata.csv"
+letter <- read.csv(paste0(urlRemote, pathGithub, filename))
+
+# convert cateforical variable to a factor 
+letter$letter <- factor(letter$letter)
+str(letter)
+
+# support vector machines require all features to be numeric. All features used for svm 
+# in this set are integers, so we don't nedd to convert anymore data types
+# The data does need to be normalized, but we will skip this step for now.
+
+# partitiion the data 
+# in this example we don't need to randomize the data selection, as the data is already randomized
+train <- letter[1:16000, ]
+test <- letter[16001:20000, ]
+
+# we will use kernlab package to create the svm. We can use caret package with it.
+# this package was developed nativley in r
+library(kernlab)
+# the kernel specified nonlinear mapping, such as rbfdot, which is radial based, polydot (polynomial case),
+# and others that can be viewed with ?ksvm
+mySVMs <- ksvm(letter ~ ., data = train,
+               kernel = "vanilladot")
+
+mySVMs
+
+# predict with testing data 
+myPredictions <- predict(mySVMs, test)
+head(myPredictions)
+table(myPredictions, test$letter)
+
+# show confusion matrix 
+library(caret)
+confusionMatrix(myPredictions, test$letter)
+
+# a cleaner looking method to see accuracy
+agreement <- myPredictions == test$letter
+table(agreement)
+prop.table(table(agreement))
+
+# 84% accuracy is not very good we can try a more complex function to map the data to a higher dimension spaces,
+# which may produce better model fit.
+
+mySVMs2 <- ksvm(letter ~ ., data = train,
+                kernel = "rbfdot")
+
+myPredictions2 <- predict(mySVMs2, test)
+head(myPredictions2)
+table(myPredictions2, test$letter)
+
+agreement2 <- myPredictions2 == test$letter
+table(agreement2)
+prop.table(table(agreement2))
+
+
