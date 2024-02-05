@@ -1,0 +1,5 @@
+urlRemote <- "https://raw.githubusercontent.com/"
+pathGithub <- "cld3033/Machine-Learning/main/Blackbox%20Learning/"
+filename <- "credit2.csv"
+credit <- read.csv(paste0(urlRemote, pathGithub, filename))
+str(credit)
