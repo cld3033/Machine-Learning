@@ -4,6 +4,13 @@ author: "Caroline Dennington"
 date: "2024-02-06"
 output: word_document
 ---
+---
+title: "Assign 4 Dennington"
+author: "Caroline Dennington"
+date: "2024-02-06"
+output: word_document
+---
+
 
 |           The German credit data is comprised of 1,000 observations and 21 variables. Analyzing the observations for each of the variables, I determined that all but 3 of the variables are categorical. The variables that are truly numeric are "credit.duration.months", "credit.amount", "age". All other variables are converted to factors. A histogram of each of these numeric variables before normalization shows that the variables are of different scales, have different means, and all have a right skewed distribution. The data is normalized and the histograms of the numeric variables are plotted for comparison. The general shape of the distributions for each variable are the same after normalization. However, the center and scale of the variables have changed. 
 ```{r}
@@ -64,4 +71,75 @@ train <- credit2[partition, ]
 test <- credit2[-partition, ]
 
 library(e1071)
+############################ Radial Basis (Gaussian) SVM ########################################
+# Identify parameters that maximize accuracy through cross validation 
+credit_gsvm <- train(
+  credit.rating ~ .,
+  data = train,
+  method = "svmRadial",
+  trControl = trainControl(method = "cv", number = 10),
+  tuneLength = 10
+)
+
+credit_gsvm$results
+
+# create the model with the optimal parameters
+svms1 <- svm(formula = credit.rating ~ ., data = train, type = "C-classification", 
+             kernel = "radial", cost = 2, gamma = 0.01502164)
+
+# predict with the test data 
+pred <- predict(svms1, test)
+table(pred, test$credit.rating)
+confusionMatrix(pred, test$credit.rating)
+
+
+############################ Linear Kernel SVM ########################################
+# Identify parameters that maximize accuracy through cross validation 
+credit_lsvm <- train(
+  credit.rating ~ .,
+  data = train,
+  method = "svmLinear",
+  trControl = trainControl(method = "cv", number = 10),
+  tuneLength = 10
+)
+
+credit_lsvm$results
+
+# create the model with the optimal parameters
+svms2 <- svm(formula = credit.rating ~ ., data = train, type = "C-classification", 
+             kernel = "linear", cost = 1)
+
+# predict with the test data 
+pred2 <- predict(svms2, test)
+table(pred2, test$credit.rating)
+confusionMatrix(pred2, test$credit.rating)
+
+############################ polynomial SVM ########################################
+# Identify parameters that maximize accuracy through cross validation 
+credit_psvm <- train(
+  credit.rating ~ .,
+  data = train,
+  method = "svmPoly",
+  trControl = trainControl(method = "cv", number = 10),
+  tuneLength = 10
+)
+
+credit_psvm$results
+
+# create the model with the optimal parameters
+svms3 <- svm(formula = credit.rating ~ ., data = train, type = "C-classification", 
+             kernel = "polynomial")
+
+# predict with the test data 
+pred3 <- predict(svms3, test)
+table(pred3, test$credit.rating)
+confusionMatrix(pred3, test$credit.rating)
+
+
 ```
+
+
+
+
+
+
