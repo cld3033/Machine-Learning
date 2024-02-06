@@ -1,5 +1,67 @@
+---
+title: "Assign4_Dennington"
+author: "Caroline Dennington"
+date: "2024-02-06"
+output: word_document
+---
+
+|           The German credit data is comprised of 1,000 observations and 21 variables. Analyzing the observations for each of the variables, I determined that all but 3 of the variables are categorical. The variables that are truly numeric are "credit.duration.months", "credit.amount", "age". All other variables are converted to factors. A histogram of each of these numeric variables before normalization shows that the variables are of different scales, have different means, and all have a right skewed distribution. The data is normalized and the histograms of the numeric variables are plotted for comparison. The general shape of the distributions for each variable are the same after normalization. However, the center and scale of the variables have changed. 
+```{r}
 urlRemote <- "https://raw.githubusercontent.com/"
 pathGithub <- "cld3033/Machine-Learning/main/Blackbox%20Learning/"
 filename <- "credit2.csv"
 credit <- read.csv(paste0(urlRemote, pathGithub, filename))
+
+# Inspect data 
 str(credit)
+
+# separate out categorical variables 
+cats <- credit[, -which(names(credit) %in% c("credit.duration.months", "credit.amount", "age"))]
+
+# convert categorical variables to factors 
+to.Factor <- function(df, variables) {
+  for (variable in variables){
+    df[[variable]] <- as.factor(df[[variable]])
+  }
+  return(df)
+}
+
+
+credit2 <- to.Factor(credit, colnames(cats))
+
+# normalize the data
+ints <- c("credit.duration.months", "credit.amount", "age")
+
+scale.features <- function(df, variables){
+  for (variable in variables){
+    df[[variable]] <- scale(df[[variable]], center = T, scale = T)
+  }
+  return(df)
+}
+
+credit2 <- scale.features(credit2, ints)
+str(credit2)
+
+
+# plot histograms of numeric data before normalization
+hist(credit$credit.duration.months)
+hist(credit$credit.amount)
+hist(credit$age)
+
+# plot histograms of numeric data after normalization
+hist(credit2$credit.duration.months)
+hist(credit2$credit.amount)
+hist(credit2$age)
+
+```
+
+```{r}
+# partition the data 
+library(caret)
+set.seed(123)
+partition <- createDataPartition(credit2$credit.rating, p = 0.6, list = FALSE)
+train <- credit2[partition, ]
+test <- credit2[-partition, ]
+
+library(e1071)
+```
