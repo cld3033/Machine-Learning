@@ -1,0 +1,13 @@
+# Define AND function with two inputs and weights 
+# The expected output is either 0 or 1
+def AND (x1, x2):
+    w1, w2, b = 0.5, 0.5, -0.7
+    tmp = w1*x1 + w2*x2 + b
+    if tmp <= 0:
+        return 0
+    else:
+        return 1
+    
+# call the function and pass inputs 
+print(AND(0, 0))
+print(AND(1, 1))
