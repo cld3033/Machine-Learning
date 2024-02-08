@@ -1,0 +1,77 @@
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.datasets import fashion_mnist
+
+(train, trainLabel), (test, testLabel) = fashion_mnist.load_data()
+
+# look at the data shape
+print(train.shape, trainLabel.shape)
+# shows 60000 images in data set, each image is expressed i 28 by 28 pixel grid
+# there 60000 labels
+
+# look at the first 5 labels in the training dataset 
+print([trainLabel[i] for i in range(5) ])
+
+# view the first image
+import matplotlib.pyplot as plt
+
+plt.figure()
+plt.imshow(train[0])
+
+# the largest pixel value is 255 so we can stanardize the data by dividing all measures by 255
+trainScaled = train/255.0
+testScaled = test/255.0
+
+# our neural network will have 784 neurons in the input layer (one for each variable)
+# and 10 neurons ing the output layer (one for eah clothing item classification)
+
+
+# Create Model 
+model = keras.Sequential([
+    tf.keras.layers.Flatten(input_shape=(28,28)), # this is the first layer being converted to simgle layer. Flatten helps by converting th 2d array to 1D 
+    tf.keras.layers.Dense(128, activation = 'relu'), # first ddense layer. uses the relu function. 128 is the number of neurons
+    tf.keras.layers.Dense(10, activation='softmax') #output layer. uses the softmax function. 10 is the number of neurons 
+    ])
+
+# Compile the model 
+# specify the loss funciton and the optimizer 
+# the adam optimizer is stochastic gradient descent 
+# sparse category cross entropy means multiple category classification
+# binary would be used for two classes 
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', 
+              metrics='accuracy')
+
+
+model.summary()
+
+
+# train the model with the fit function
+# epoch is the number of times training is repeated 
+# accuracy improves for each epoch
+model.fit(trainScaled, trainLabel, epochs=5)
+
+# evaluate performance with testing data
+testLoss, testAccuracy=model.evaluate(testScaled, testLabel)
+
+# to make sure the accuracy is releiable, test the first itme in the testing dataset
+import numpy as np
+predictions = model.predict(testScaled)
+print(predictions[0])
+print(np.argmax(predictions[0]))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
