@@ -1,0 +1,72 @@
+# this will be a regression based example 
+# because of this we will use a different loss function and accuracy will be 
+# assessed differently
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# import data 
+url = 'https://raw.githubusercontent.com/cld3033/Machine-Learning/main/Deep%20Learning%20Fundamentals/concrete.csv'
+df = pd.read_csv(url)
+print(df.head(5))
+
+# separate the predictors and target variables
+x = df.drop('Strength', axis = 1)
+y = df['Strength']
+
+
+# data partitioning : training 7 : testing 3 
+from sklearn.model_selection import train_test_split
+# in Sickit learn capital X denotes data and lowercase y denotes label
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size = 0.3)
+
+# check to make sure that the data is split correctly 
+X_train.shape
+X_test.shape
+
+# scale the data 
+# standard scalar is mean 0 variance 1
+# minimax scalar has all values between 0 and 1
+# robust scalar use the median and quantile values, instead of mean and variance 
+# normalizer adjust all the values features vecto r to be one 
+from sklearn.preprocessing import StandardScaler
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+# build the model
+# Small amount of training data leads to higher chance of overfitting
+# to offset this, you can build a smaller model
+import tensorflow as tf
+from tensorflow import keras
+
+model = keras.Sequential()
+model.add(tf.keras.layers.Dense(64, activation = 'relu',
+                                input_shape=(X_train.shape[1],))) # the input layer
+model.add(tf.keras.layers.Dense(32, activation='relu')) # the second layer
+model.add(tf.keras.layers.Dense(1, activation ='linear'))
+
+model.compile(optimizer= 'adam', loss='mean_squared_error', metrics='mse')
+# actual learning 
+history = model.fit(X_train, y_train, epochs = 200)
+model.summary()
+
+loss, mse=model.evaluate(X_test, y_test)
+print("MSE: ", mse)
+
+# performance evaluation
+y_train_predict = model.predict(X_train)
+y_test_predict = model.predict(X_test)
+
+from sklearn.metrics import r2_score
+print("R^2 Score: ", r2_score(y_train,y_train_predict))
+print("R^2 Score: ", r2_score(y_test,y_test_predict))
+
+
+
+
+
+
+
+
