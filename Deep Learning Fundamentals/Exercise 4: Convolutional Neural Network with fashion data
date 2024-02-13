@@ -1,0 +1,46 @@
+# Convolutional Neural Network with fashion mnist data
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.datasets import fashion_mnist
+
+# load data 
+(train, trainLabel), (test, testLabel) = fashion_mnist.load_data()
+print(train.shape, trainLabel.shape)
+print(test.shape, testLabel.shape)
+
+# add depth dimension for color
+# since the images in the data set are black and white, the data structure is 28x28x1
+# if the images had color, the data structur would be 28x28x3 because the color is RGB based
+# the -1 is contained in this reshape method hte value is inverted from the length of the array 
+# and the remaining dimensions. The position of the changed array is estimated from the size 
+# of the original array.
+# the -1 means the number of elements in the original array for the train set this id 60000
+train_new = train.reshape(-1, 28, 28, 1)/255.0
+test_new = test.reshape(-1, 28, 28, 1)/255.0
+
+model = keras.Sequential()
+# filters is the number of filters
+# kernel_size specifies the size of the kernel to be used for the filter 
+model.add(keras.layers.Conv2D(filters = 32, kernel_size = (3,3),
+                              activation = 'relu',
+                              input_shape = (28, 28, 1)))
+
+# add a pooling layer with max pooling 
+model.add(keras.layers.MaxPooling2D(pool_size=(2,2), strides = (1,1)))
+
+model.add(keras.layers.Flatten())
+model.add(keras.layers.Dense(784, activation = 'relu'))
+model.add(keras.layers.Dense(10, activation = 'softmax'))
+
+model.summary()
+# the summary shows the size of the feature map from the convolutional layer is 32
+
+# compile the model 
+model.compile(optimizer = 'adam', loss = 'sparse_categorical_crossentropy',
+              metrics = 'accuracy')
+
+# actual learning
+history = model.fit(train_new, trainLabel, epochs = 5)
+
+# test the model
+testLoss, testAccuracy = model.evaluate(test_new, testLabel)
