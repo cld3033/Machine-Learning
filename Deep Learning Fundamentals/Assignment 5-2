@@ -14,3 +14,66 @@ from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(x, y, test_size = 0.3)
 
 # Normalize the data 
+from sklearn.preprocessing import StandardScaler
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+# Create a neural network
+import tensorflow as tf
+from tensorflow import keras
+
+model = keras.Sequential()
+model.add(tf.keras.layers.Dense(324, activation = 'relu',
+                                input_shape = (X_train.shape[1],)))
+model.add(tf.keras.layers.Dense(4, activation = 'softmax'))
+
+model.compile(optimizer = 'adam', loss = 'sparse_categorical_crossentropy',
+              metrics = 'accuracy')
+
+model.summary()
+
+# train the model 
+history = model.fit(X_train, y_train, epochs = 100)
+
+print(history)
+
+import matplotlib.pyplot as plt 
+plt.plot(history.history['loss'])
+plt.xlabel('epoch')
+plt.ylabel('loss')
+plt.show()
+
+history = model.fit(X_train, y_train, epochs = 25)
+
+print(history)
+
+# test the model
+testLoss, testAccuracy = model.evaluate(X_test, y_test)
+
+# Create convolutional neural network 
+model2 = keras.Sequential()
+model2.add(tf.keras.layers.Conv1D(filters = 32, kernel_size = 5,
+                               activation = 'relu',
+                               input_shape = (19,1)))
+
+# add a pooling layer with max pooling
+model2.add(keras.layers.MaxPooling1D(pool_size=(4), strides = (1)))
+
+model2.add(keras.layers.Dense(324, activation = 'relu'))
+model2.add(keras.layers.Dense(4, activation = 'softmax'))
+
+model2.summary
+
+# compile the model 
+model2.compile(optimizer = 'adam', loss = 'sparse_categorical_crossentropy',
+               metrics = 'accuracy')
+
+# train the model 
+history2 = model.fit(X_train, y_train, epochs = 25)
+
+# test the model 
+testLoss, testAccuracy = model.evaluate(X_test, y_test)
+
+
+
