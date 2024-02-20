@@ -34,22 +34,33 @@ model.compile(optimizer = 'adam', loss = 'sparse_categorical_crossentropy',
 model.summary()
 
 # train the model 
-history = model.fit(X_train, y_train, epochs = 100)
+# history = model.fit(X_train, y_train, epochs = 100)
 
-print(history)
+# print(history)
 
 import matplotlib.pyplot as plt 
-plt.plot(history.history['loss'])
-plt.xlabel('epoch')
-plt.ylabel('loss')
-plt.show()
+# plt.plot(history.history['loss'])
+# plt.xlabel('epoch')
+# plt.ylabel('loss')
+# plt.show()
 
-history = model.fit(X_train, y_train, epochs = 25)
+history = model.fit(X_train, y_train, epochs = 20)
 
 print(history)
 
 # test the model
 testLoss, testAccuracy = model.evaluate(X_test, y_test)
+
+# Check to see if the  data is overfit 
+history = model.fit(X_train, y_train, epochs = 20,
+                    validation_data=(X_test, y_test))
+
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.xlabel('epoch')
+plt.ylabel('loss')
+plt.legend(['train', 'test'])
+plt.show
 
 # Create convolutional neural network 
 model2 = keras.Sequential()
@@ -58,22 +69,56 @@ model2.add(tf.keras.layers.Conv1D(filters = 32, kernel_size = 4,
                                input_shape = (19,1)))
 
 # add a pooling layer with max pooling
-model2.add(keras.layers.MaxPooling1D(pool_size=(2), strides = (1)))
+model2.add(keras.layers.MaxPooling1D(pool_size=(4), strides = (4)))
 
 model2.add(keras.layers.Dense(324, activation = 'relu'))
 model2.add(keras.layers.Dense(4, activation = 'softmax'))
 
-model2.summary
+model2.summary()
 
 # compile the model 
 model2.compile(optimizer = 'adam', loss = 'sparse_categorical_crossentropy',
                metrics = 'accuracy')
 
-# train the model 
-history2 = model.fit(X_train, y_train, epochs = 5)
+# train and validate the model 
+history2 = model.fit(X_train, y_train, epochs = 5,
+                     validation_data=(X_test, y_test))
 
-# test the model 
-testLoss, testAccuracy = model.evaluate(X_test, y_test)
+# add new phone data 
+import numpy as np
+df2 = pd.DataFrame({
+       'battery_power': 1500,
+       'bluetooth': 1,
+       'clock_speed': 2.1,
+       'dual_sim': 1,
+       'frontcamerapixel': 10,
+       '4G': 1,
+       'memorysize': 45,
+       'weight': 148,
+       'cores': 8,
+       'primarycamerapixel': 7,
+       'pixelresolutionheight': 1216,
+       'pixelresolutionwidth': 1786,
+       'ram': 3763,
+       'screenheight': 14,
+       'screenwidth': 9,
+       'talk_time': 13,
+       '3G': 1,
+       'touch_screen': 1,
+       'wifi': 1
+       }, index=[0])
 
+x2 = pd.concat([x, df2], ignore_index = True)
+x2.reset_index()
+print(x2)
+
+
+# Normalize the data 
+x2 = sc.fit_transform(x2)
+
+# predict price range of the new phone
+predictions = model.predict(x2)
+print(predictions[2000])
+print(np.argmax(predictions[2000]))
 
 
