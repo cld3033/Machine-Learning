@@ -1,0 +1,64 @@
+#urlRemote <- "https://raw.githubusercontent.com/"
+#pathGithub <- "cld3033/Machine-Learning/main/Blackbox%20Learning/"
+#filename <- "credit2.csv"
+#credit <- read.csv(paste0(urlRemote, pathGithub, filename))
+#str(credit)
+
+library(tm)
+library(stringr)
+library(SnowballC)
+library(wordcloud)
+library(Matrix)
+
+# read txt files in one folder 
+filepath <- "/Users/carolinebullock/Desktop/6-2/txt"
+
+# set the working directory 
+setwd(filepath)
+
+# return the names of files in the directory 
+dir(filepath)
+
+# import the text into one of the objects using the corpus function
+# a corpus is a collection of text data. Like a data set.
+# DirSource creates a directory source 
+corpus <- Corpus(DirSource(filepath)) 
+corpus # 200 text files have been importes into the corpus as documents 
+
+# working with a file 
+filepath <- "/Users/carolinebullock/Desktop/6-2"
+setwd(filepath)
+file <- "HBO_NOW.txt"
+text = file(file, open="r") # open the file in read only mode. 
+text.decomposition = readLines(text) # readlines lets us read the reviews one by one 
+text.decomposition[1]
+text.decomposition[2]
+corpus <- Corpus(VectorSource(text.decomposition))
+corpus
+
+# Data Cleaning 
+corpus <- tm_map(corpus, tlower)
+corpus <- tm_map(corpus, removeNumbers)
+corpus <- tm_map(corpus, removePunctuation)
+
+# remove stop words
+stopwords("english")
+selfstopwords <- c("app", "hbo", "now")
+corpus <- tm_map(corpus, removeWords,
+                 c(stopwords("english"), selfstopwords))
+
+
+writeLines(as.character(corpus[[2]])) # outputs second line in the file, or second document
+
+# remove whitespace
+corpus <- tm_map(corpus, stripWhitespace)
+writeLines(as.character(corpus[[2]]))
+
+# perform stemming 
+corpus <- tm_map(corpus, stemDocument)
+writeLines(as.character(corpus[[2]]))
+
+corpus.tdm <- TermDocumentMatrix(corpus)
+colnames(corpus.tdm) <- (1:dim(corpus.tdm)[2])
+
+write.csv(as.matrix(corpus.tdm), file = file.path("tdm.csv"))
