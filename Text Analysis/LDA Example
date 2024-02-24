@@ -1,0 +1,158 @@
+#urlRemote <- "https://raw.githubusercontent.com/"
+#pathGithub <- "cld3033/Machine-Learning/main/Blackbox%20Learning/"
+#filename <- "credit2.csv"
+#credit <- read.csv(paste0(urlRemote, pathGithub, filename))
+#str(credit)
+
+library(tm)
+library(stringr)
+library(SnowballC)
+library(wordcloud)
+library(Matrix)
+
+# read txt files in one folder 
+filepath <- "/Users/carolinebullock/Desktop/6-2/txt"
+
+# set the working directory 
+setwd(filepath)
+
+# return the names of files in the directory 
+dir(filepath)
+
+# import the text into one of the objects using the corpus function
+# a corpus is a collection of text data. Like a data set.
+# DirSource creates a directory source 
+corpus <- Corpus(DirSource(filepath)) 
+corpus # 200 text files have been importes into the corpus as documents 
+
+# working with a file 
+filepath <- "/Users/carolinebullock/Desktop/6-2"
+setwd(filepath)
+file <- "HBO_NOW.txt"
+text = file(file, open="r") # open the file in read only mode. 
+text.decomposition = readLines(text) # readlines lets us read the reviews one by one 
+text.decomposition[1]
+text.decomposition[2]
+corpus <- Corpus(VectorSource(text.decomposition))
+corpus
+
+# Data Cleaning 
+corpus <- tm_map(corpus, tlower)
+corpus <- tm_map(corpus, removeNumbers)
+corpus <- tm_map(corpus, removePunctuation)
+
+# remove stop words
+stopwords("english")
+selfstopwords <- c("app", "hbo", "now")
+corpus <- tm_map(corpus, removeWords,
+                 c(stopwords("english"), selfstopwords))
+
+
+writeLines(as.character(corpus[[2]])) # outputs second line in the file, or second document
+
+# remove whitespace
+corpus <- tm_map(corpus, stripWhitespace)
+writeLines(as.character(corpus[[2]]))
+
+# perform stemming 
+corpus <- tm_map(corpus, stemDocument)
+writeLines(as.character(corpus[[2]]))
+
+corpus.tdm <- TermDocumentMatrix(corpus)
+colnames(corpus.tdm) <- (1:dim(corpus.tdm)[2])
+
+write.csv(as.matrix(corpus.tdm), file = file.path("tdm.csv"))
+
+# Create wordcloud
+library(wordcloud)
+wordcloud(corpus, min.freq = 10, random.order = FALSE) #higher frequency words are placed close to the center 
+wordcloud(corpus, min.freq = 10, colors = brewer.pal(8,"Dark2"))
+
+# LSA
+# Create Term-Document Matrix 
+corpus.tdm <- TermDocumentMatrix(corpus)
+write(write.csv(as.matrix(corpus.tdm), file = file.path("tdm1.csv")))
+
+corpus_freq_words <- findFreqTerms(corpus.tdm, 5) #returns words that appear at least 5 times 
+
+# crete weight TDM
+corpus_tdm_weighted <- weightTfIdf(corpus.tdm)
+
+# specify the dimensions 
+userdimension = 10
+
+library(lsa)
+corpus_tdm_weighted_LSA <- lsa(corpus_tdm_weighted, dims = userdimension)
+summary(corpus_tdm_weighted_LSA)
+#tk is the u matrix or term matrix
+# term matrix
+tk <- as.matrix(corpus_tdm_weighted_LSA$tk)
+
+# diagonal matrix 
+sk <- Diagonal(n=userdimension, as.matrix(corpus_tdm_weighted_LSA$sk))
+
+# doc matrix 
+dk <- as.matrix(corpus_tdm_weighted_LSA$dk)
+
+#term loading
+# what are the terms loaded to the topics
+termloading <- tk %*% sk
+# write the term loading
+write.csv(as.matrix(termloading), file = "term_loading.csv")
+
+# document loading 
+docloading <- dk %*% sk
+# write the document loading 
+write.csv(as.matrix(docloading), file = "doc_loading.csv")
+
+
+###################### use LDA #####################################################
+# find optimal value for k 
+
+# create a vector with candidates for k 
+can_k <- c(2, 3, 4, 5, 10, 20, 40, 60, 100)
+# create a matrix to store the results
+results <- matrix(0, nrow = length(can_k), ncol = 2)
+colnames(results) <- c("k", "Perplexity")
+
+# create dtm from our corpus
+corpus.dtm <- DocumentTermMatrix(corpus)
+
+# run the LDA model with ks
+for (j in 1:length(can_k)){
+  k <- can_k[j]
+  SEED <- 2019
+  # sampling mehtod is set to Gibbs. This gives sampling matrix that adopts the Markov chain Monte Carlo algorithm
+  # burnin=1000 means that the model would run 1000 times before starting to record any results
+  # thin means to record the results for every 100th run 
+  # iterator means it was set to run another 1000 iterations
+  text.lda <- LDA(corpus.dtm, k=k, method = "Gibbs",
+                  control = list(seed = SEED, burnin=1000,
+                                 thin=100, iter=1000))
+  results[j,] <- c(k, perplexity(text.lda, newdata = corpus.dtm))
+}
+
+results_df <- as.data.frame(results)
+results_df
+# the smallest value for perplexity is when k = 10 
+# this is the lowest number I can get from the analysis, therefor lets reset the model to
+# where k = 10 and run it again
+
+# run the final model with k=10 
+k <- 10 
+SEED <- 2019
+text.lda <- LDA(corpus.dtm, k=k, method = "Gibbs",
+                control = list(seed = SEED, burnin = 1000,
+                               thin = 100, iter = 1000))
+# terms probability for eeach topic
+Terms <- posterior(text.lda)$terms
+# topics probability for each document 
+Topics <- posterior(text.lda)$topics
+
+write.csv(t(as.matrix(Terms)), file = "TermsLDA.csv") # transpose
+write.csv(as.matrix(Topics), file = "TopicsLDA.csv")
+
+# observe the top 10 terms for each topic
+top.terms <- terms(text.lda, 10)
+write.csv(as.matrix(top.terms), file = "TopTermsLDA.csv")
+
