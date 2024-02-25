@@ -37,7 +37,7 @@ corpus <- Corpus(VectorSource(text.decomposition))
 corpus
 
 # Data Cleaning 
-corpus <- tm_map(corpus, tlower)
+corpus <- tm_map(corpus, tolower)
 corpus <- tm_map(corpus, removeNumbers)
 corpus <- tm_map(corpus, removePunctuation)
 
