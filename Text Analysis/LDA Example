@@ -1,8 +1,46 @@
-#urlRemote <- "https://raw.githubusercontent.com/"
-#pathGithub <- "cld3033/Machine-Learning/main/Blackbox%20Learning/"
-#filename <- "credit2.csv"
-#credit <- read.csv(paste0(urlRemote, pathGithub, filename))
-#str(credit)
+# LDA with tidy example
+library(topicmodels)
+data("AssociatedPress")
+AssociatedPress
+
+# create two topic models 
+set.seed(1234)
+apLDA <- LDA(AssociatedPress, k=2)
+apLDA
+
+# Data format using the tidy function
+library(tidytext)
+ap_topics <- tidy(apLDA, matrix = "beta")
+ap_topics
+# the beta is the probability of the term 
+# generated from that particular topic
+
+# top 5 terms in each topic
+library(dplyr)
+top_terms <- ap_topics %>%
+  group_by(topic) %>%
+  top_n(5, beta) %>%
+  arrange(topic, -beta)
+
+top_terms
+
+# Document Term Proability
+ap_document <- tidy(apLDA, matrix = "gamma")
+ap_document 
+
+# top 5 documents
+top_docs <- ap_document %>%
+  group_by(topic) %>%
+  top_n(5, gamma) %>%
+  arrange(topic, -gamma)
+
+top_docs
+
+# view most frequent words in document 6 form the original document term matrix
+tidy(AssociatedPress) %>%
+  filter(document==6) %>%
+  arrange(desc(count))
+
 
 library(tm)
 library(stringr)
