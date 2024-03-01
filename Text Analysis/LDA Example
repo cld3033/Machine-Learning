@@ -183,8 +183,10 @@ text.lda <- LDA(corpus.dtm, k=k, method = "Gibbs",
                 control = list(seed = SEED, burnin = 1000,
                                thin = 100, iter = 1000))
 # terms probability for eeach topic
+# probabiliy the term will be generated from that topic
 Terms <- posterior(text.lda)$terms
 # topics probability for each document 
+# probability the document contains that topic
 Topics <- posterior(text.lda)$topics
 
 write.csv(t(as.matrix(Terms)), file = "TermsLDA.csv") # transpose
